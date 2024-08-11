@@ -1,3 +1,5 @@
+from bisect import bisect_left
+
 import numpy as np
 
 
@@ -6,12 +8,11 @@ def benjamini_hochberg(p_values, q: float = 0.05):
     Perform the Benjamini-Hochberg procedure
     https://en.wikipedia.org/wiki/False_discovery_rate#Benjamini%E2%80%93Hochberg_procedure
 
-    :param p_values: List or array of p-values from multiple hypothesis tests.
+    :param p_values: array of p-values from multiple hypothesis tests.
     :param q: The desired false discovery rate level.
 
-    :return A numpy array of booleans indicating which hypotheses are rejected.
+    :return: A numpy array of booleans indicating which hypotheses are rejected.
     """
-    p_values = np.array(p_values)
     n = len(p_values)
     sorted_indices = np.argsort(p_values)
     sorted_p_values = p_values[sorted_indices]
@@ -34,15 +35,18 @@ def conformal_p_values(calibration_scores, test_scores):
 
     :return: A numpy array of p-values
     """
-    calibration_scores = np.array(calibration_scores)
-    test_scores = np.array(test_scores)
+    calibration_scores = np.sort(calibration_scores)
+    unique_cal_scores, counts = np.unique(calibration_scores, return_counts=True)
+    cumulative_counts = np.cumsum(np.concatenate([np.zeros(1), counts]))
+    counts_as_dict = dict(zip(unique_cal_scores, counts))
     n_calibration = len(calibration_scores)
     n_test = len(test_scores)
     p_values = np.zeros(n_test)
 
     for j in range(n_test):
-        strictly_lower = np.sum(calibration_scores < test_scores[j])
-        tie_breaker = np.random.uniform() * (np.sum(calibration_scores == test_scores[j]) + 1)
+        pos = bisect_left(calibration_scores, test_scores[j])
+        strictly_lower = cumulative_counts[pos]
+        tie_breaker = np.random.uniform() * (counts_as_dict.get(test_scores[j], 0) + 1)
         p_values[j] = (strictly_lower + tie_breaker) / (n_calibration + 1)
 
     return p_values

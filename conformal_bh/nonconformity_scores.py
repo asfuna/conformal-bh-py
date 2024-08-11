@@ -33,4 +33,4 @@ class CliffModelNonconformityScore(NonconformityScore):
         self.max_model = max_model * 2 if max_model is not None else None
 
     def get_score(self, x, y):
-        return (self.max_model or y) * (1 if y > self.cliff else 0) - self.model(x)
+        return (self.max_model if self.max_model is not None else y) * (y > self.cliff) - self.model(x)

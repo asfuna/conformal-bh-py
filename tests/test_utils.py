@@ -8,11 +8,11 @@ from conformal_bh import utils
 
 class TestUtils(unittest.TestCase):
     def test_benjamini_hochberg(self):
-        p_values = [0.01, 0.04, 0.03, 0.002, 0.005, 0.03, 0.12, 0.06]
+        p_values = np.array([0.01, 0.04, 0.03, 0.002, 0.005, 0.03, 0.12, 0.06])
         q = 0.05
 
         rejected_hypotheses = utils.benjamini_hochberg(p_values, q)
-        self.assertEqual(rejected_hypotheses, np.array([True, False, True, True, True, True, False, False]))
+        np.testing.assert_array_equal(rejected_hypotheses, np.array([True, False, True, True, True, True, False, False]))
 
     def test_conformal_p_values(self):
         test_scores = np.array([1.5, 2.5, 3.5])
